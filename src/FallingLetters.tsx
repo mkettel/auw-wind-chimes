@@ -1,7 +1,7 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Text3D } from "@react-three/drei";
-import { RigidBody, useRopeJoint } from "@react-three/rapier";
-import { useFrame } from "@react-three/fiber";
+import { RigidBody, useRopeJoint, RapierRigidBody } from "@react-three/rapier";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 function String({
@@ -57,11 +57,11 @@ function String({
 const getLetterAttachment = (letter: string) => {
   switch (letter) {
     case "A":
-      return new THREE.Vector3(-1.5, 2.2, 0.25); // Top center of A
+      return new THREE.Vector3(-1.5, 0.9, 0.25); // Top center of A
     case "U":
-      return new THREE.Vector3(0.2, 2.1, 0.25); // Top center of U
+      return new THREE.Vector3(0.2, 0.9, 0.25); // Top center of U
     case "W":
-      return new THREE.Vector3(4, 2.1, 0.25); // Top center of W
+      return new THREE.Vector3(4, 0.9, 0.25); // Top center of W
     default:
       return new THREE.Vector3(0, 1, 0.25);
   }
@@ -99,23 +99,28 @@ function HangingLetter({
           <meshStandardMaterial
             color="#000000"
             roughness={0.5}
-            metalness={0.5}
+            metalness={0.8}
           />
         </mesh>
       </RigidBody>
 
       {/* Letter with physics */}
-      <RigidBody ref={letterRef} colliders="hull">
+      <RigidBody
+        ref={letterRef}
+        colliders="hull"
+        linearDamping={0.2}
+        angularDamping={0.2}
+      >
         <Text3D
           font="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json"
           size={2}
           height={0.5}
-          curveSegments={12}
+          curveSegments={15}
           bevelEnabled={true}
           bevelThickness={0.05}
           bevelSize={0.02}
           bevelSegments={10}
-          position={[xPosition, 0.1, 0]}
+          position={[xPosition, -1.1, 0]}
         >
           {letter}
           <meshStandardMaterial
@@ -136,10 +141,47 @@ function HangingLetter({
   );
 }
 
+function MouseSphere() {
+  const sphereRef = useRef<RapierRigidBody>(null);
+  const { viewport } = useThree();
+  const currentPos = useRef(new THREE.Vector3(0, 0, 0));
+  const targetPos = useRef(new THREE.Vector3(0, 0, 0));
+
+  useFrame((state) => {
+    if (sphereRef.current) {
+      // Convert mouse position to 3D space
+      const x = (state.pointer.x * viewport.width) / 2;
+      const y = (state.pointer.y * viewport.height) / 2;
+
+      // Update target position
+      targetPos.current.set(x, y, 0);
+
+      // Smoothly interpolate current position to target (lerp for fluid motion)
+      currentPos.current.lerp(targetPos.current, 0.1);
+
+      sphereRef.current.setTranslation(currentPos.current, true);
+    }
+  });
+
+  return (
+    <RigidBody
+      ref={sphereRef}
+      type="kinematicPosition"
+      colliders="ball"
+      sensor={false}
+    >
+      <mesh>
+        <sphereGeometry args={[1.0, 16, 16]} />
+        <meshStandardMaterial visible={false} />
+      </mesh>
+    </RigidBody>
+  );
+}
+
 export function FallingLetters() {
   const letters = ["A", "U", "W"];
   const spacing = 2.5;
-  const stringLength = 10;
+  const stringLength = 15;
 
   return (
     <group>
@@ -154,6 +196,7 @@ export function FallingLetters() {
           />
         );
       })}
+      <MouseSphere />
     </group>
   );
 }
