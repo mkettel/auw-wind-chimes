@@ -138,6 +138,7 @@ function HangingLetter({
   frequencies: { A: number; U: number; W: number };
 }) {
   const anchorRef = useRef<any>(null);
+  const anchorRef2 = useRef<any>(null); // Second anchor for U's second string
   const letterRef = useRef<any>(null);
   const attachmentPoint = getLetterAttachment(letter);
   const lastCollisionTime = useRef(0);
@@ -180,6 +181,13 @@ function HangingLetter({
     stringLength,
   ]);
 
+  // Second rope joint for U's second string
+  useRopeJoint(anchorRef2, letterRef, [
+    [0, 0, 0],
+    [1.5, 0.9, 0.25], // Second attachment point on U
+    stringLength,
+  ]);
+
   // Apply gentle wind force
   useFrame((state) => {
     if (letterRef.current) {
@@ -212,6 +220,24 @@ function HangingLetter({
           />
         </mesh>
       </RigidBody>
+
+      {/* Second anchor point for U letter */}
+      {letter === 'U' && (
+        <RigidBody
+          ref={anchorRef2}
+          type="fixed"
+          position={[xPosition + 1.5, stringLength, 0]}
+        >
+          <mesh>
+            <sphereGeometry args={[0.1, 8, 8]} />
+            <meshStandardMaterial
+              color="#000000"
+              roughness={0.5}
+              metalness={0.8}
+            />
+          </mesh>
+        </RigidBody>
+      )}
 
       {/* Letter with physics */}
       <RigidBody
@@ -250,6 +276,17 @@ function HangingLetter({
         color={stringColor}
         opacity={stringOpacity}
       />
+
+      {/* Second string for U letter */}
+      {letter === "U" && (
+        <String
+          anchorRef={anchorRef2}
+          letterRef={letterRef}
+          offset={new THREE.Vector3(1.5, 0.9, 0.25)}
+          color={stringColor}
+          opacity={stringOpacity}
+        />
+      )}
     </>
   );
 }
