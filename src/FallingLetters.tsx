@@ -30,13 +30,13 @@ const playChimeSound = (frequency: number, volume: number = 0.3) => {
 
   // Envelope for natural chime decay
   gainNode.gain.setValueAtTime(volume, now);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.5); // make last number smaller to make sound more subtle
 
   oscillator.connect(gainNode);
   gainNode.connect(ctx.destination);
 
   oscillator.start(now);
-  oscillator.stop(now + 1.5);
+  oscillator.stop(now + 1.5); // make last number smaller to make sound more subtle
 };
 
 function String({
@@ -326,21 +326,21 @@ export function FallingLetters() {
       soundEnabled: { value: false, label: "Enable Sound" },
       soundVolume: { value: 0.2, min: 0, max: 1, step: 0.05, label: "Volume" },
       freqA: {
-        value: 523.25,
+        value: 396.25,
         min: 200,
         max: 1000,
         step: 1,
         label: "A Frequency (Hz)",
       },
       freqU: {
-        value: 659.25,
+        value: 265.25,
         min: 200,
         max: 1000,
         step: 1,
         label: "U Frequency (Hz)",
       },
       freqW: {
-        value: 783.99,
+        value: 200.99,
         min: 200,
         max: 1000,
         step: 1,
