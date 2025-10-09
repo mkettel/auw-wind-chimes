@@ -9,10 +9,14 @@ function String({
   anchorRef,
   letterRef,
   offset,
+  color,
+  opacity,
 }: {
   anchorRef: any;
   letterRef: any;
   offset: THREE.Vector3;
+  color: string;
+  opacity: number;
 }) {
   const lineRef = useRef<any>(null);
 
@@ -45,10 +49,10 @@ function String({
     <line ref={lineRef}>
       <bufferGeometry />
       <lineBasicMaterial
-        color="#cccccc"
+        color={color}
         linewidth={1}
         transparent={true}
-        opacity={0.5}
+        opacity={opacity}
       />
     </line>
   );
@@ -75,6 +79,11 @@ function HangingLetter({
   color,
   metalness,
   roughness,
+  windStrength,
+  windSpeed,
+  damping,
+  stringColor,
+  stringOpacity,
 }: {
   letter: string;
   xPosition: number;
@@ -82,6 +91,11 @@ function HangingLetter({
   color: string;
   metalness: number;
   roughness: number;
+  windStrength: number;
+  windSpeed: number;
+  damping: number;
+  stringColor: string;
+  stringOpacity: number;
 }) {
   const anchorRef = useRef<any>(null);
   const letterRef = useRef<any>(null);
@@ -99,8 +113,8 @@ function HangingLetter({
       const time = state.clock.elapsedTime;
 
       // Create a subtle, natural wind pattern using sine waves
-      const windX = Math.sin(time * 0.3 + xPosition) * 0.009; // make last number smaller to make wind more subtle
-      const windZ = Math.sin(time * 0.5 + xPosition * 0.5) * 0.001; // make last number smaller to make wind more subtle
+      const windX = Math.sin(time * windSpeed + xPosition) * windStrength;
+      const windZ = Math.sin(time * (windSpeed * 1.5) + xPosition * 0.5) * (windStrength * 0.3);
 
       letterRef.current.applyImpulse({ x: windX, y: 0, z: windZ }, true);
     }
@@ -128,8 +142,8 @@ function HangingLetter({
       <RigidBody
         ref={letterRef}
         colliders="hull"
-        linearDamping={0.2}
-        angularDamping={0.2}
+        linearDamping={damping}
+        angularDamping={damping}
       >
         <Text3D
           font="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json"
@@ -156,6 +170,8 @@ function HangingLetter({
         anchorRef={anchorRef}
         letterRef={letterRef}
         offset={attachmentPoint}
+        color={stringColor}
+        opacity={stringOpacity}
       />
     </>
   );
@@ -209,6 +225,17 @@ export function FallingLetters() {
     roughness: { value: 0.0, min: 0, max: 1, step: 0.1, label: "Roughness" },
   });
 
+  const { windStrength, windSpeed, damping } = useControls("Physics", {
+    windStrength: { value: 0.009, min: 0, max: 0.05, step: 0.001, label: "Wind Strength" },
+    windSpeed: { value: 0.3, min: 0.1, max: 2, step: 0.1, label: "Wind Speed" },
+    damping: { value: 0.2, min: 0, max: 2, step: 0.1, label: "Damping" },
+  });
+
+  const { stringOpacity, stringColor } = useControls("Strings", {
+    stringColor: { value: "#cccccc", label: "String Color" },
+    stringOpacity: { value: 0.5, min: 0, max: 1, step: 0.1, label: "Opacity" },
+  });
+
   return (
     <group>
       {letters.map((letter, index) => {
@@ -222,6 +249,11 @@ export function FallingLetters() {
             color={letterColor}
             metalness={metalness}
             roughness={roughness}
+            windStrength={windStrength}
+            windSpeed={windSpeed}
+            damping={damping}
+            stringColor={stringColor}
+            stringOpacity={stringOpacity}
           />
         );
       })}
