@@ -3,6 +3,7 @@ import { Text3D } from "@react-three/drei";
 import { RigidBody, useRopeJoint, RapierRigidBody } from "@react-three/rapier";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { useControls } from "leva";
 
 function String({
   anchorRef,
@@ -71,10 +72,16 @@ function HangingLetter({
   letter,
   xPosition,
   stringLength,
+  color,
+  metalness,
+  roughness,
 }: {
   letter: string;
   xPosition: number;
   stringLength: number;
+  color: string;
+  metalness: number;
+  roughness: number;
 }) {
   const anchorRef = useRef<any>(null);
   const letterRef = useRef<any>(null);
@@ -137,9 +144,9 @@ function HangingLetter({
         >
           {letter}
           <meshStandardMaterial
-            color="#05faf1"
-            metalness={0.1}
-            roughness={0.9}
+            color={color}
+            metalness={metalness}
+            roughness={roughness}
           />
         </Text3D>
       </RigidBody>
@@ -196,6 +203,12 @@ export function FallingLetters() {
   const spacing = 2.5;
   const stringLength = 15;
 
+  const { letterColor, metalness, roughness } = useControls("Letters", {
+    letterColor: { value: "#ffffff", label: "Color" },
+    metalness: { value: 0.9, min: 0, max: 1, step: 0.1, label: "Metalness" },
+    roughness: { value: 0.0, min: 0, max: 1, step: 0.1, label: "Roughness" },
+  });
+
   return (
     <group>
       {letters.map((letter, index) => {
@@ -206,6 +219,9 @@ export function FallingLetters() {
             letter={letter}
             xPosition={xPosition}
             stringLength={stringLength}
+            color={letterColor}
+            metalness={metalness}
+            roughness={roughness}
           />
         );
       })}

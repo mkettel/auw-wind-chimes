@@ -31,7 +31,7 @@ function App() {
           </RigidBody> */}
         </Physics>
 
-        <OrbitControls />
+        {/* <OrbitControls /> */}
       </Canvas>
     </div>
   );
