@@ -86,6 +86,19 @@ function HangingLetter({
     stringLength,
   ]);
 
+  // Apply gentle wind force
+  useFrame((state) => {
+    if (letterRef.current) {
+      const time = state.clock.elapsedTime;
+
+      // Create a subtle, natural wind pattern using sine waves
+      const windX = Math.sin(time * 0.3 + xPosition) * 0.009; // make last number smaller to make wind more subtle
+      const windZ = Math.sin(time * 0.5 + xPosition * 0.5) * 0.001; // make last number smaller to make wind more subtle
+
+      letterRef.current.applyImpulse({ x: windX, y: 0, z: windZ }, true);
+    }
+  });
+
   return (
     <>
       {/* Fixed anchor point (invisible) */}
