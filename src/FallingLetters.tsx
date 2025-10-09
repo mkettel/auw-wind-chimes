@@ -128,18 +128,18 @@ function HangingLetter({
           font="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json"
           size={2}
           height={0.5}
-          curveSegments={15}
+          curveSegments={25}
           bevelEnabled={true}
           bevelThickness={0.05}
-          bevelSize={0.02}
-          bevelSegments={10}
+          bevelSize={0.04}
+          bevelSegments={20}
           position={[xPosition, -1.1, 0]}
         >
           {letter}
           <meshStandardMaterial
-            color="#000000"
-            metalness={0.3}
-            roughness={0.4}
+            color="#05faf1"
+            metalness={0.1}
+            roughness={0.9}
           />
         </Text3D>
       </RigidBody>
