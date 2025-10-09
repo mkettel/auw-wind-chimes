@@ -96,11 +96,11 @@ function String({
 const getLetterAttachment = (letter: string) => {
   switch (letter) {
     case "A":
-      return new THREE.Vector3(-1.5, 0.9, 0.25); // Top center of A
+      return new THREE.Vector3(-1.55, 0.9, 0.25); // Top center of A
     case "U":
       return new THREE.Vector3(0.2, 0.9, 0.25); // Top center of U
     case "W":
-      return new THREE.Vector3(4, 0.9, 0.25); // Top center of W
+      return new THREE.Vector3(2.8, 0.9, 0.25); // Top center of W
     default:
       return new THREE.Vector3(0, 1, 0.25);
   }
@@ -138,7 +138,8 @@ function HangingLetter({
   frequencies: { A: number; U: number; W: number };
 }) {
   const anchorRef = useRef<any>(null);
-  const anchorRef2 = useRef<any>(null); // Second anchor for U's second string
+  const anchorRef2 = useRef<any>(null); // Second anchor for U and W
+  const anchorRef3 = useRef<any>(null); // Third anchor for W
   const letterRef = useRef<any>(null);
   const attachmentPoint = getLetterAttachment(letter);
   const lastCollisionTime = useRef(0);
@@ -181,10 +182,21 @@ function HangingLetter({
     stringLength,
   ]);
 
-  // Second rope joint for U's second string
-  useRopeJoint(anchorRef2, letterRef, [
+  // Second rope joint - only for U and W
+  const hasSecondString = letter === "U" || letter === "W";
+  const secondAttachment: [number, number, number] =
+    letter === "W" ? [3.8, 0.9, 0.25] : [1.5, 0.9, 0.25];
+  useRopeJoint(hasSecondString ? anchorRef2 : anchorRef, letterRef, [
     [0, 0, 0],
-    [1.5, 0.9, 0.25], // Second attachment point on U
+    secondAttachment,
+    stringLength,
+  ]);
+
+  // Third rope joint - only for W
+  const hasThirdString = letter === "W";
+  useRopeJoint(hasThirdString ? anchorRef3 : anchorRef, letterRef, [
+    [0, 0, 0],
+    [4.9, 0.9, 0.25],
     stringLength,
   ]);
 
@@ -205,7 +217,7 @@ function HangingLetter({
 
   return (
     <>
-      {/* Fixed anchor point (invisible) */}
+      {/* Fixed anchor point */}
       <RigidBody
         ref={anchorRef}
         type="fixed"
@@ -221,12 +233,48 @@ function HangingLetter({
         </mesh>
       </RigidBody>
 
-      {/* Second anchor point for U letter */}
-      {letter === 'U' && (
+      {/* Second anchor point for U */}
+      {letter === "U" && (
         <RigidBody
           ref={anchorRef2}
           type="fixed"
-          position={[xPosition + 1.5, stringLength, 0]}
+          position={[xPosition + 1.2, stringLength, 0]}
+        >
+          <mesh>
+            <sphereGeometry args={[0.1, 8, 8]} />
+            <meshStandardMaterial
+              color="#000000"
+              roughness={0.5}
+              metalness={0.8}
+            />
+          </mesh>
+        </RigidBody>
+      )}
+
+      {/* Second anchor point for W */}
+      {letter === "W" && (
+        <RigidBody
+          ref={anchorRef2}
+          type="fixed"
+          position={[xPosition + 1.2, stringLength, 0]}
+        >
+          <mesh>
+            <sphereGeometry args={[0.1, 8, 8]} />
+            <meshStandardMaterial
+              color="#000000"
+              roughness={0.5}
+              metalness={0.8}
+            />
+          </mesh>
+        </RigidBody>
+      )}
+
+      {/* Third anchor point for W letter */}
+      {letter === "W" && (
+        <RigidBody
+          ref={anchorRef3}
+          type="fixed"
+          position={[xPosition + 2.4, stringLength, 0]}
         >
           <mesh>
             <sphereGeometry args={[0.1, 8, 8]} />
@@ -277,12 +325,34 @@ function HangingLetter({
         opacity={stringOpacity}
       />
 
-      {/* Second string for U letter */}
+      {/* Second string for U */}
       {letter === "U" && (
         <String
           anchorRef={anchorRef2}
           letterRef={letterRef}
           offset={new THREE.Vector3(1.5, 0.9, 0.25)}
+          color={stringColor}
+          opacity={stringOpacity}
+        />
+      )}
+
+      {/* Second string for W */}
+      {letter === "W" && (
+        <String
+          anchorRef={anchorRef2}
+          letterRef={letterRef}
+          offset={new THREE.Vector3(3.8, 0.9, 0.25)}
+          color={stringColor}
+          opacity={stringOpacity}
+        />
+      )}
+
+      {/* Third string for W letter */}
+      {letter === "W" && (
+        <String
+          anchorRef={anchorRef3}
+          letterRef={letterRef}
+          offset={new THREE.Vector3(4.9, 0.9, 0.25)}
           color={stringColor}
           opacity={stringOpacity}
         />
