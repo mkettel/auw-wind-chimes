@@ -1,9 +1,11 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Text3D } from "@react-three/drei";
 import { RigidBody, useRopeJoint, RapierRigidBody } from "@react-three/rapier";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useControls } from "leva";
+import { LetterAModel } from "./LetterA";
+import { LetterUModel } from "./LetterU";
+import { LetterWModel } from "./LetterW";
 
 // Audio context for wind chime sounds
 let audioContext: AudioContext | null = null;
@@ -100,7 +102,7 @@ const getLetterAttachment = (letter: string) => {
     case "U":
       return new THREE.Vector3(0.2, 0.9, 0.25); // Top center of U
     case "W":
-      return new THREE.Vector3(2.8, 0.9, 0.25); // Top center of W
+      return new THREE.Vector3(2.4, 0.9, 0.25); // Top center of W
     default:
       return new THREE.Vector3(0, 1, 0.25);
   }
@@ -296,24 +298,29 @@ function HangingLetter({
         onCollisionEnter={handleCollision}
         name={`letter-${letter}`}
       >
-        <Text3D
-          font="https://threejs.org/examples/fonts/helvetiker_bold.typeface.json"
-          size={2}
-          height={0.5}
-          curveSegments={25}
-          bevelEnabled={true}
-          bevelThickness={0.05}
-          bevelSize={0.04}
-          bevelSegments={20}
-          position={[xPosition, -1.1, 0]}
-        >
-          {letter}
-          <meshStandardMaterial
-            color={color}
-            metalness={metalness}
-            roughness={roughness}
-          />
-        </Text3D>
+        <group position={[xPosition, -1.1, 0]}>
+          {letter === "A" && (
+            <LetterAModel
+              color={color}
+              metalness={metalness}
+              roughness={roughness}
+            />
+          )}
+          {letter === "U" && (
+            <LetterUModel
+              color={color}
+              metalness={metalness}
+              roughness={roughness}
+            />
+          )}
+          {letter === "W" && (
+            <LetterWModel
+              color={color}
+              metalness={metalness}
+              roughness={roughness}
+            />
+          )}
+        </group>
       </RigidBody>
 
       {/* Visual string */}
@@ -352,7 +359,7 @@ function HangingLetter({
         <String
           anchorRef={anchorRef3}
           letterRef={letterRef}
-          offset={new THREE.Vector3(4.9, 0.9, 0.25)}
+          offset={new THREE.Vector3(5.15, 0.9, 0.25)}
           color={stringColor}
           opacity={stringOpacity}
         />
