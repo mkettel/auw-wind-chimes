@@ -94,7 +94,7 @@ function String({
   );
 }
 
-// Different attachment points for each letter shape
+// Different attachment points for each letter shape. strings are attached to the top of the letter.
 const getLetterAttachment = (letter: string) => {
   switch (letter) {
     case "A":
