@@ -6,6 +6,7 @@ import { useControls } from "leva";
 import { LetterAModel } from "./LetterA";
 import { LetterUModel } from "./LetterU";
 import { LetterWModel } from "./LetterW";
+import { RegisterModel } from "./Register";
 
 // Audio context for wind chime sounds
 let audioContext: AudioContext | null = null;
@@ -103,6 +104,8 @@ const getLetterAttachment = (letter: string) => {
       return new THREE.Vector3(0.2, 0.9, 0.25); // Top center of U
     case "W":
       return new THREE.Vector3(2.4, 0.9, 0.25); // Top center of W
+    case "R":
+      return new THREE.Vector3(4.0, 0.5, 0.5); // Top center of Register
     default:
       return new THREE.Vector3(0, 1, 0.25);
   }
@@ -123,6 +126,9 @@ function HangingLetter({
   soundEnabled,
   soundVolume,
   frequencies,
+  attachmentPoint,
+  secondAttachmentPoint,
+  letterOffset,
 }: {
   letter: string;
   xPosition: number;
@@ -137,13 +143,15 @@ function HangingLetter({
   stringOpacity: number;
   soundEnabled: boolean;
   soundVolume: number;
-  frequencies: { A: number; U: number; W: number };
+  frequencies: { A: number; U: number; W: number; R: number };
+  attachmentPoint: THREE.Vector3;
+  secondAttachmentPoint?: THREE.Vector3;
+  letterOffset: THREE.Vector3;
 }) {
   const anchorRef = useRef<any>(null);
   const anchorRef2 = useRef<any>(null); // Second anchor for U and W
   const anchorRef3 = useRef<any>(null); // Third anchor for W
   const letterRef = useRef<any>(null);
-  const attachmentPoint = getLetterAttachment(letter);
   const lastCollisionTime = useRef(0);
 
   // Different frequencies for each letter (like wind chimes)
@@ -155,6 +163,8 @@ function HangingLetter({
         return frequencies.U;
       case "W":
         return frequencies.W;
+      case "R":
+        return frequencies.R;
       default:
         return 440;
     }
@@ -184,13 +194,26 @@ function HangingLetter({
     stringLength,
   ]);
 
-  // Second rope joint - only for U and W
-  const hasSecondString = letter === "U" || letter === "W";
-  const secondAttachment: [number, number, number] =
-    letter === "W" ? [3.8, 0.9, 0.25] : [1.5, 0.9, 0.25];
+  // Second rope joint - for U, W, and R
+  const hasSecondString = letter === "U" || letter === "W" || letter === "R";
+
+  // Get second attachment point based on letter type
+  const getSecondAttachment = (): [number, number, number] => {
+    if (letter === "W") return [3.8, 0.9, 0.25];
+    if (letter === "U") return [1.5, 0.9, 0.25];
+    if (letter === "R" && secondAttachmentPoint) {
+      return [
+        secondAttachmentPoint.x,
+        secondAttachmentPoint.y,
+        secondAttachmentPoint.z,
+      ];
+    }
+    return [0, 0, 0];
+  };
+
   useRopeJoint(hasSecondString ? anchorRef2 : anchorRef, letterRef, [
     [0, 0, 0],
-    secondAttachment,
+    getSecondAttachment(),
     stringLength,
   ]);
 
@@ -223,7 +246,11 @@ function HangingLetter({
       <RigidBody
         ref={anchorRef}
         type="fixed"
-        position={[xPosition, stringLength, 0]}
+        position={[
+          letter === "R" ? xPosition + 0.5 : xPosition,
+          stringLength,
+          0,
+        ]}
       >
         <mesh>
           <sphereGeometry args={[0.1, 8, 8]} />
@@ -234,6 +261,24 @@ function HangingLetter({
           />
         </mesh>
       </RigidBody>
+
+      {/* Second anchor point for R */}
+      {letter === "R" && (
+        <RigidBody
+          ref={anchorRef2}
+          type="fixed"
+          position={[xPosition + 1.5, stringLength, 0]}
+        >
+          <mesh>
+            <sphereGeometry args={[0.1, 8, 8]} />
+            <meshStandardMaterial
+              color="#000000"
+              roughness={0.5}
+              metalness={0.8}
+            />
+          </mesh>
+        </RigidBody>
+      )}
 
       {/* Second anchor point for U */}
       {letter === "U" && (
@@ -297,8 +342,15 @@ function HangingLetter({
         angularDamping={damping}
         onCollisionEnter={handleCollision}
         name={`letter-${letter}`}
+        position={letter === "R" ? [xPosition + 1.0, 0, 0] : undefined}
       >
-        <group position={[xPosition, -1.1, 0]}>
+        <group
+          position={[
+            letter === "R" ? letterOffset.x : xPosition + letterOffset.x,
+            letter === "R" ? 2.0 + letterOffset.y : -1.1 + letterOffset.y,
+            letterOffset.z,
+          ]}
+        >
           {letter === "A" && (
             <LetterAModel
               color={color}
@@ -320,6 +372,13 @@ function HangingLetter({
               roughness={roughness}
             />
           )}
+          {letter === "R" && (
+            <RegisterModel
+              color={color}
+              metalness={metalness}
+              roughness={roughness}
+            />
+          )}
         </group>
       </RigidBody>
 
@@ -331,6 +390,17 @@ function HangingLetter({
         color={stringColor}
         opacity={stringOpacity}
       />
+
+      {/* Second string for R */}
+      {letter === "R" && secondAttachmentPoint && (
+        <String
+          anchorRef={anchorRef2}
+          letterRef={letterRef}
+          offset={secondAttachmentPoint}
+          color={stringColor}
+          opacity={stringOpacity}
+        />
+      )}
 
       {/* Second string for U */}
       {letter === "U" && (
@@ -407,7 +477,7 @@ function MouseSphere() {
 }
 
 export function FallingLetters() {
-  const letters = ["A", "U", "W"];
+  const letters = ["A", "U", "W", "R"];
   const spacing = 2.5;
   const stringLength = 15;
 
@@ -419,7 +489,7 @@ export function FallingLetters() {
 
   const { windStrength, windSpeed, damping } = useControls("Physics", {
     windStrength: {
-      value: 0.009,
+      value: 0.001,
       min: 0,
       max: 0.05,
       step: 0.001,
@@ -434,7 +504,67 @@ export function FallingLetters() {
     stringOpacity: { value: 0.1, min: 0, max: 1, step: 0.1, label: "Opacity" },
   });
 
-  const { soundEnabled, soundVolume, freqA, freqU, freqW } = useControls(
+  // String attachment positions for A
+  const { aAttachX, aAttachY, aAttachZ } = useControls("A String Attach", {
+    aAttachX: { value: -1.55, min: -5, max: 5, step: 0.01, label: "X" },
+    aAttachY: { value: 0.9, min: -5, max: 5, step: 0.01, label: "Y" },
+    aAttachZ: { value: 0.25, min: -5, max: 5, step: 0.01, label: "Z" },
+  });
+
+  // String attachment positions for U
+  const { uAttachX, uAttachY, uAttachZ } = useControls("U String Attach", {
+    uAttachX: { value: 0.2, min: -5, max: 5, step: 0.01, label: "X" },
+    uAttachY: { value: 0.9, min: -5, max: 5, step: 0.01, label: "Y" },
+    uAttachZ: { value: 0.25, min: -5, max: 5, step: 0.01, label: "Z" },
+  });
+
+  // String attachment positions for W
+  const { wAttachX, wAttachY, wAttachZ } = useControls("W String Attach", {
+    wAttachX: { value: 2.4, min: -5, max: 5, step: 0.01, label: "X" },
+    wAttachY: { value: 0.9, min: -5, max: 5, step: 0.01, label: "Y" },
+    wAttachZ: { value: 0.25, min: -5, max: 5, step: 0.01, label: "Z" },
+  });
+
+  // String attachment positions for R (first string)
+  const { rAttachX, rAttachY, rAttachZ } = useControls("R String Attach 1", {
+    rAttachX: { value: 4.04, min: -5, max: 5, step: 0.01, label: "X" },
+    rAttachY: { value: 1.64, min: -5, max: 5, step: 0.01, label: "Y" },
+    rAttachZ: { value: 0.29, min: -5, max: 5, step: 0.01, label: "Z" },
+  });
+
+  // String attachment positions for R (second string)
+  const { rAttach2X, rAttach2Y, rAttach2Z } = useControls("R String Attach 2", {
+    rAttach2X: { value: 3.93, min: -5, max: 5, step: 0.01, label: "X" },
+    rAttach2Y: { value: 1.58, min: -5, max: 5, step: 0.01, label: "Y" },
+    rAttach2Z: { value: 0.63, min: -5, max: 5, step: 0.01, label: "Z" },
+  });
+
+  // Letter position offsets
+  const { aLetterX, aLetterY, aLetterZ } = useControls("A Letter Position", {
+    aLetterX: { value: 0, min: -5, max: 5, step: 0.01, label: "X Offset" },
+    aLetterY: { value: 0, min: -5, max: 5, step: 0.01, label: "Y Offset" },
+    aLetterZ: { value: 0, min: -5, max: 5, step: 0.01, label: "Z Offset" },
+  });
+
+  const { uLetterX, uLetterY, uLetterZ } = useControls("U Letter Position", {
+    uLetterX: { value: 0, min: -5, max: 5, step: 0.01, label: "X Offset" },
+    uLetterY: { value: 0, min: -5, max: 5, step: 0.01, label: "Y Offset" },
+    uLetterZ: { value: 0, min: -5, max: 5, step: 0.01, label: "Z Offset" },
+  });
+
+  const { wLetterX, wLetterY, wLetterZ } = useControls("W Letter Position", {
+    wLetterX: { value: 0, min: -5, max: 5, step: 0.01, label: "X Offset" },
+    wLetterY: { value: 0, min: -5, max: 5, step: 0.01, label: "Y Offset" },
+    wLetterZ: { value: 0, min: -5, max: 5, step: 0.01, label: "Z Offset" },
+  });
+
+  const { rLetterX, rLetterY, rLetterZ } = useControls("R Letter Position", {
+    rLetterX: { value: 3.62, min: -5, max: 5, step: 0.01, label: "X Offset" },
+    rLetterY: { value: -0.4, min: -5, max: 5, step: 0.01, label: "Y Offset" },
+    rLetterZ: { value: 0.0, min: -5, max: 5, step: 0.01, label: "Z Offset" },
+  });
+
+  const { soundEnabled, soundVolume, freqA, freqU, freqW, freqR } = useControls(
     "Sound",
     {
       soundEnabled: { value: false, label: "Enable Sound" },
@@ -460,8 +590,92 @@ export function FallingLetters() {
         step: 1,
         label: "W Frequency (Hz)",
       },
+      freqR: {
+        value: 528.0,
+        min: 200,
+        max: 1000,
+        step: 1,
+        label: "R Frequency (Hz)",
+      },
     }
   );
+
+  // Memoize attachment points to ensure they're proper Vector3 instances
+  const attachmentPoints = React.useMemo(
+    () => ({
+      A: new THREE.Vector3(aAttachX, aAttachY, aAttachZ),
+      U: new THREE.Vector3(uAttachX, uAttachY, uAttachZ),
+      W: new THREE.Vector3(wAttachX, wAttachY, wAttachZ),
+      R: new THREE.Vector3(rAttachX, rAttachY, rAttachZ),
+    }),
+    [
+      aAttachX,
+      aAttachY,
+      aAttachZ,
+      uAttachX,
+      uAttachY,
+      uAttachZ,
+      wAttachX,
+      wAttachY,
+      wAttachZ,
+      rAttachX,
+      rAttachY,
+      rAttachZ,
+    ]
+  );
+
+  const secondAttachmentPoints = React.useMemo(
+    () => ({
+      R: new THREE.Vector3(rAttach2X, rAttach2Y, rAttach2Z),
+    }),
+    [rAttach2X, rAttach2Y, rAttach2Z]
+  );
+
+  const letterOffsets = React.useMemo(
+    () => ({
+      A: new THREE.Vector3(aLetterX, aLetterY, aLetterZ),
+      U: new THREE.Vector3(uLetterX, uLetterY, uLetterZ),
+      W: new THREE.Vector3(wLetterX, wLetterY, wLetterZ),
+      R: new THREE.Vector3(rLetterX, rLetterY, rLetterZ),
+    }),
+    [
+      aLetterX,
+      aLetterY,
+      aLetterZ,
+      uLetterX,
+      uLetterY,
+      uLetterZ,
+      wLetterX,
+      wLetterY,
+      wLetterZ,
+      rLetterX,
+      rLetterY,
+      rLetterZ,
+    ]
+  );
+
+  // Helper to get attachment point for each letter (first string)
+  const getAttachmentPoint = (letter: string) => {
+    return (
+      attachmentPoints[letter as keyof typeof attachmentPoints] ||
+      new THREE.Vector3(0, 1, 0.25)
+    );
+  };
+
+  // Helper to get second attachment point for R
+  const getSecondAttachmentPoint = (letter: string) => {
+    return secondAttachmentPoints[
+      letter as keyof typeof secondAttachmentPoints
+    ];
+  };
+
+  // Helper to get letter offset for each letter
+  const getLetterOffset = (letter: string) => {
+    return (
+      letterOffsets[letter as keyof typeof letterOffsets] ||
+      new THREE.Vector3(0, 0, 0)
+    );
+  };
 
   return (
     <group>
@@ -483,7 +697,10 @@ export function FallingLetters() {
             stringOpacity={stringOpacity}
             soundEnabled={soundEnabled}
             soundVolume={soundVolume}
-            frequencies={{ A: freqA, U: freqU, W: freqW }}
+            frequencies={{ A: freqA, U: freqU, W: freqW, R: freqR }}
+            attachmentPoint={getAttachmentPoint(letter)}
+            secondAttachmentPoint={getSecondAttachmentPoint(letter)}
+            letterOffset={getLetterOffset(letter)}
           />
         );
       })}
