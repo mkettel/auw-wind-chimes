@@ -35,7 +35,7 @@ export function LetterUModel(
         geometry={nodes.U002.geometry}
         position={[0.881, -0.5, 0.3]}
         rotation={[Math.PI / 2, 0, 0]}
-        scale={100.439}
+        scale={[100.439, 140.439, 100.439]}
       >
         <meshStandardMaterial
           color={color || materials["U.001"].color}
