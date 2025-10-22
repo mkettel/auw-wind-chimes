@@ -527,16 +527,16 @@ export function FallingLetters() {
 
   // String attachment positions for R (first string)
   const { rAttachX, rAttachY, rAttachZ } = useControls("R String Attach 1", {
-    rAttachX: { value: 4.04, min: -5, max: 5, step: 0.01, label: "X" },
-    rAttachY: { value: 1.64, min: -5, max: 5, step: 0.01, label: "Y" },
-    rAttachZ: { value: 0.29, min: -5, max: 5, step: 0.01, label: "Z" },
+    rAttachX: { value: 4.1, min: -5, max: 5, step: 0.01, label: "X" },
+    rAttachY: { value: 1.91, min: -5, max: 5, step: 0.01, label: "Y" },
+    rAttachZ: { value: 0.44, min: -5, max: 5, step: 0.01, label: "Z" },
   });
 
   // String attachment positions for R (second string)
   const { rAttach2X, rAttach2Y, rAttach2Z } = useControls("R String Attach 2", {
-    rAttach2X: { value: 3.93, min: -5, max: 5, step: 0.01, label: "X" },
-    rAttach2Y: { value: 1.58, min: -5, max: 5, step: 0.01, label: "Y" },
-    rAttach2Z: { value: 0.63, min: -5, max: 5, step: 0.01, label: "Z" },
+    rAttach2X: { value: 3.88, min: -5, max: 5, step: 0.01, label: "X" },
+    rAttach2Y: { value: 1.48, min: -5, max: 5, step: 0.01, label: "Y" },
+    rAttach2Z: { value: 0.68, min: -5, max: 5, step: 0.01, label: "Z" },
   });
 
   // Letter position offsets

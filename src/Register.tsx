@@ -34,8 +34,8 @@ export function RegisterModel(
         receiveShadow
         geometry={nodes.R002.geometry}
         position={[0.5, 0.0, 0.45]}
-        rotation={[Math.PI / 2, 0, 0]}
-        scale={132.439}
+        rotation={[0, 0.8, -0.5]}
+        scale={[132.439, 132.439, 132.439]}
       >
         <meshStandardMaterial
           color={color || materials[".R.001"].color}
