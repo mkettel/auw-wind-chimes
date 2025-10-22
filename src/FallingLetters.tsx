@@ -506,9 +506,9 @@ export function FallingLetters() {
 
   // String attachment positions for A
   const { aAttachX, aAttachY, aAttachZ } = useControls("A String Attach", {
-    aAttachX: { value: -1.55, min: -5, max: 5, step: 0.01, label: "X" },
-    aAttachY: { value: 0.9, min: -5, max: 5, step: 0.01, label: "Y" },
-    aAttachZ: { value: 0.25, min: -5, max: 5, step: 0.01, label: "Z" },
+    aAttachX: { value: -0.6, min: -5, max: 5, step: 0.01, label: "X" },
+    aAttachY: { value: 0.08, min: -5, max: 5, step: 0.01, label: "Y" },
+    aAttachZ: { value: 0.3, min: -5, max: 5, step: 0.01, label: "Z" },
   });
 
   // String attachment positions for U

@@ -34,7 +34,7 @@ export function LetterAModel(
         receiveShadow
         geometry={nodes.A002.geometry}
         position={[0.55, -0.15, 0.22]}
-        rotation={[Math.PI / 2, -0.2, -0.0]}
+        rotation={[Math.PI / 2, -0.8, -0.0]}
         scale={[100.439, 140.439, 100.439]}
       >
         <meshStandardMaterial
