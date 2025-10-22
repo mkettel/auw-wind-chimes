@@ -504,66 +504,6 @@ export function FallingLetters() {
     stringOpacity: { value: 0.1, min: 0, max: 1, step: 0.1, label: "Opacity" },
   });
 
-  // String attachment positions for A
-  const { aAttachX, aAttachY, aAttachZ } = useControls("A String Attach", {
-    aAttachX: { value: -0.6, min: -5, max: 5, step: 0.01, label: "X" },
-    aAttachY: { value: 0.08, min: -5, max: 5, step: 0.01, label: "Y" },
-    aAttachZ: { value: 0.3, min: -5, max: 5, step: 0.01, label: "Z" },
-  });
-
-  // String attachment positions for U
-  const { uAttachX, uAttachY, uAttachZ } = useControls("U String Attach", {
-    uAttachX: { value: 0.2, min: -5, max: 5, step: 0.01, label: "X" },
-    uAttachY: { value: 0.9, min: -5, max: 5, step: 0.01, label: "Y" },
-    uAttachZ: { value: 0.25, min: -5, max: 5, step: 0.01, label: "Z" },
-  });
-
-  // String attachment positions for W
-  const { wAttachX, wAttachY, wAttachZ } = useControls("W String Attach", {
-    wAttachX: { value: 2.4, min: -5, max: 5, step: 0.01, label: "X" },
-    wAttachY: { value: 0.9, min: -5, max: 5, step: 0.01, label: "Y" },
-    wAttachZ: { value: 0.25, min: -5, max: 5, step: 0.01, label: "Z" },
-  });
-
-  // String attachment positions for R (first string)
-  const { rAttachX, rAttachY, rAttachZ } = useControls("R String Attach 1", {
-    rAttachX: { value: 4.1, min: -5, max: 5, step: 0.01, label: "X" },
-    rAttachY: { value: 1.91, min: -5, max: 5, step: 0.01, label: "Y" },
-    rAttachZ: { value: 0.44, min: -5, max: 5, step: 0.01, label: "Z" },
-  });
-
-  // String attachment positions for R (second string)
-  const { rAttach2X, rAttach2Y, rAttach2Z } = useControls("R String Attach 2", {
-    rAttach2X: { value: 3.88, min: -5, max: 5, step: 0.01, label: "X" },
-    rAttach2Y: { value: 1.48, min: -5, max: 5, step: 0.01, label: "Y" },
-    rAttach2Z: { value: 0.68, min: -5, max: 5, step: 0.01, label: "Z" },
-  });
-
-  // Letter position offsets
-  const { aLetterX, aLetterY, aLetterZ } = useControls("A Letter Position", {
-    aLetterX: { value: 0, min: -5, max: 5, step: 0.01, label: "X Offset" },
-    aLetterY: { value: 0, min: -5, max: 5, step: 0.01, label: "Y Offset" },
-    aLetterZ: { value: 0, min: -5, max: 5, step: 0.01, label: "Z Offset" },
-  });
-
-  const { uLetterX, uLetterY, uLetterZ } = useControls("U Letter Position", {
-    uLetterX: { value: 0, min: -5, max: 5, step: 0.01, label: "X Offset" },
-    uLetterY: { value: 0, min: -5, max: 5, step: 0.01, label: "Y Offset" },
-    uLetterZ: { value: 0, min: -5, max: 5, step: 0.01, label: "Z Offset" },
-  });
-
-  const { wLetterX, wLetterY, wLetterZ } = useControls("W Letter Position", {
-    wLetterX: { value: 0, min: -5, max: 5, step: 0.01, label: "X Offset" },
-    wLetterY: { value: 0, min: -5, max: 5, step: 0.01, label: "Y Offset" },
-    wLetterZ: { value: 0, min: -5, max: 5, step: 0.01, label: "Z Offset" },
-  });
-
-  const { rLetterX, rLetterY, rLetterZ } = useControls("R Letter Position", {
-    rLetterX: { value: 3.62, min: -5, max: 5, step: 0.01, label: "X Offset" },
-    rLetterY: { value: -0.4, min: -5, max: 5, step: 0.01, label: "Y Offset" },
-    rLetterZ: { value: 0.0, min: -5, max: 5, step: 0.01, label: "Z Offset" },
-  });
-
   const { soundEnabled, soundVolume, freqA, freqU, freqW, freqR } = useControls(
     "Sound",
     {
@@ -600,58 +540,32 @@ export function FallingLetters() {
     }
   );
 
-  // Memoize attachment points to ensure they're proper Vector3 instances
+  // String attachment points (hardcoded)
   const attachmentPoints = React.useMemo(
     () => ({
-      A: new THREE.Vector3(aAttachX, aAttachY, aAttachZ),
-      U: new THREE.Vector3(uAttachX, uAttachY, uAttachZ),
-      W: new THREE.Vector3(wAttachX, wAttachY, wAttachZ),
-      R: new THREE.Vector3(rAttachX, rAttachY, rAttachZ),
+      A: new THREE.Vector3(-0.6, 0.08, 0.3),
+      U: new THREE.Vector3(0.2, 0.9, 0.25),
+      W: new THREE.Vector3(2.4, 0.9, 0.25),
+      R: new THREE.Vector3(4.1, 1.91, 0.44),
     }),
-    [
-      aAttachX,
-      aAttachY,
-      aAttachZ,
-      uAttachX,
-      uAttachY,
-      uAttachZ,
-      wAttachX,
-      wAttachY,
-      wAttachZ,
-      rAttachX,
-      rAttachY,
-      rAttachZ,
-    ]
+    []
   );
 
   const secondAttachmentPoints = React.useMemo(
     () => ({
-      R: new THREE.Vector3(rAttach2X, rAttach2Y, rAttach2Z),
+      R: new THREE.Vector3(3.88, 1.48, 0.68),
     }),
-    [rAttach2X, rAttach2Y, rAttach2Z]
+    []
   );
 
   const letterOffsets = React.useMemo(
     () => ({
-      A: new THREE.Vector3(aLetterX, aLetterY, aLetterZ),
-      U: new THREE.Vector3(uLetterX, uLetterY, uLetterZ),
-      W: new THREE.Vector3(wLetterX, wLetterY, wLetterZ),
-      R: new THREE.Vector3(rLetterX, rLetterY, rLetterZ),
+      A: new THREE.Vector3(0, 0, 0),
+      U: new THREE.Vector3(0, 0, 0),
+      W: new THREE.Vector3(0, 0, 0),
+      R: new THREE.Vector3(3.62, -0.4, 0.0),
     }),
-    [
-      aLetterX,
-      aLetterY,
-      aLetterZ,
-      uLetterX,
-      uLetterY,
-      uLetterZ,
-      wLetterX,
-      wLetterY,
-      wLetterZ,
-      rLetterX,
-      rLetterY,
-      rLetterZ,
-    ]
+    []
   );
 
   // Helper to get attachment point for each letter (first string)
