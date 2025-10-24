@@ -1,6 +1,12 @@
 import React from "react";
 import { Camera, Canvas, Vector3 } from "@react-three/fiber";
-import { OrbitControls, Center, Environment, Sky } from "@react-three/drei";
+import {
+  OrbitControls,
+  Center,
+  Environment,
+  Sky,
+  SoftShadows,
+} from "@react-three/drei";
 import { Physics, RigidBody } from "@react-three/rapier";
 import { Model } from "./Logo";
 import { FallingLetters } from "./FallingLetters";
@@ -12,27 +18,37 @@ import * as THREE from "three";
 function App() {
   return (
     <div className="App" style={{ width: "100vw", height: "100vh" }}>
-      <Canvas>
+      <Canvas shadows>
         <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
+        <directionalLight
+          position={[9, 2, 5]}
+          intensity={2}
+          castShadow
+          shadow-mapSize={[512, 512]}
+          shadow-camera-left={-5}
+          shadow-camera-right={15}
+          shadow-camera-top={10}
+          shadow-camera-bottom={-10}
+        />
         <Environment preset="forest" />
         <CameraController />
+        <SoftShadows size={10} samples={8} focus={0} />
 
         <Physics gravity={[0, -9.8, 0]}>
           {/* Falling Letters */}
           <FallingLetters />
 
           {/* Ground plane */}
-          {/* <RigidBody type="fixed">
+          <RigidBody type="fixed">
             <mesh
               receiveShadow
-              position={[0, -10, 0]}
-              rotation={[-Math.PI / 2, 0, 0]}
+              position={[0, 0, -3]}
+              rotation={[0, 0, Math.PI / 2]}
             >
-              <planeGeometry args={[90, 50]} />
-              <meshStandardMaterial color="#000000" />
+              <planeGeometry args={[50, 50]} />
+              <meshStandardMaterial color="#e7e7e7" />
             </mesh>
-          </RigidBody> */}
+          </RigidBody>
         </Physics>
 
         {/* <OrbitControls /> */}
