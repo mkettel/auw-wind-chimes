@@ -500,7 +500,7 @@ export function FallingLetters() {
   });
 
   const { stringOpacity, stringColor } = useControls("Strings", {
-    stringColor: { value: "#cccccc", label: "String Color" },
+    stringColor: { value: "#000000", label: "String Color" },
     stringOpacity: { value: 0.1, min: 0, max: 1, step: 0.1, label: "Opacity" },
   });
 
