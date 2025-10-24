@@ -481,64 +481,81 @@ export function FallingLetters() {
   const spacing = 2.5;
   const stringLength = 15;
 
-  const { letterColor, metalness, roughness } = useControls("Letters", {
-    letterColor: { value: "#ffffff", label: "Color" },
-    metalness: { value: 0.9, min: 0, max: 1, step: 0.1, label: "Metalness" },
-    roughness: { value: 0.0, min: 0, max: 1, step: 0.1, label: "Roughness" },
-  });
+  // Hardcoded values (to enable GUI, comment these out and uncomment useControls blocks below)
+  const letterColor = "#ffffff";
+  const metalness = 0.9;
+  const roughness = 0.0;
+  const windStrength = 0.001;
+  const windSpeed = 0.3;
+  const damping = 0.2;
+  const stringColor = "#000000";
+  const stringOpacity = 0.1;
+  const soundEnabled = false;
+  const soundVolume = 0.2;
+  const freqA = 396.25;
+  const freqU = 265.25;
+  const freqW = 200.99;
+  const freqR = 528.0;
 
-  const { windStrength, windSpeed, damping } = useControls("Physics", {
-    windStrength: {
-      value: 0.001,
-      min: 0,
-      max: 0.05,
-      step: 0.001,
-      label: "Wind Strength",
-    },
-    windSpeed: { value: 0.3, min: 0.1, max: 2, step: 0.1, label: "Wind Speed" },
-    damping: { value: 0.2, min: 0, max: 2, step: 0.1, label: "Damping" },
-  });
+  // Uncomment these blocks to enable Leva GUI controls
+  // const { letterColor, metalness, roughness } = useControls("Letters", {
+  //   letterColor: { value: "#ffffff", label: "Color" },
+  //   metalness: { value: 0.9, min: 0, max: 1, step: 0.1, label: "Metalness" },
+  //   roughness: { value: 0.0, min: 0, max: 1, step: 0.1, label: "Roughness" },
+  // });
 
-  const { stringOpacity, stringColor } = useControls("Strings", {
-    stringColor: { value: "#000000", label: "String Color" },
-    stringOpacity: { value: 0.1, min: 0, max: 1, step: 0.1, label: "Opacity" },
-  });
+  // const { windStrength, windSpeed, damping } = useControls("Physics", {
+  //   windStrength: {
+  //     value: 0.001,
+  //     min: 0,
+  //     max: 0.05,
+  //     step: 0.001,
+  //     label: "Wind Strength",
+  //   },
+  //   windSpeed: { value: 0.3, min: 0.1, max: 2, step: 0.1, label: "Wind Speed" },
+  //   damping: { value: 0.2, min: 0, max: 2, step: 0.1, label: "Damping" },
+  // });
 
-  const { soundEnabled, soundVolume, freqA, freqU, freqW, freqR } = useControls(
-    "Sound",
-    {
-      soundEnabled: { value: false, label: "Enable Sound" },
-      soundVolume: { value: 0.2, min: 0, max: 1, step: 0.05, label: "Volume" },
-      freqA: {
-        value: 396.25,
-        min: 200,
-        max: 1000,
-        step: 1,
-        label: "A Frequency (Hz)",
-      },
-      freqU: {
-        value: 265.25,
-        min: 200,
-        max: 1000,
-        step: 1,
-        label: "U Frequency (Hz)",
-      },
-      freqW: {
-        value: 200.99,
-        min: 200,
-        max: 1000,
-        step: 1,
-        label: "W Frequency (Hz)",
-      },
-      freqR: {
-        value: 528.0,
-        min: 200,
-        max: 1000,
-        step: 1,
-        label: "R Frequency (Hz)",
-      },
-    }
-  );
+  // const { stringOpacity, stringColor } = useControls("Strings", {
+  //   stringColor: { value: "#000000", label: "String Color" },
+  //   stringOpacity: { value: 0.1, min: 0, max: 1, step: 0.1, label: "Opacity" },
+  // });
+
+  // const { soundEnabled, soundVolume, freqA, freqU, freqW, freqR } = useControls(
+  //   "Sound",
+  //   {
+  //     soundEnabled: { value: false, label: "Enable Sound" },
+  //     soundVolume: { value: 0.2, min: 0, max: 1, step: 0.05, label: "Volume" },
+  //     freqA: {
+  //       value: 396.25,
+  //       min: 200,
+  //       max: 1000,
+  //       step: 1,
+  //       label: "A Frequency (Hz)",
+  //     },
+  //     freqU: {
+  //       value: 265.25,
+  //       min: 200,
+  //       max: 1000,
+  //       step: 1,
+  //       label: "U Frequency (Hz)",
+  //     },
+  //     freqW: {
+  //       value: 200.99,
+  //       min: 200,
+  //       max: 1000,
+  //       step: 1,
+  //       label: "W Frequency (Hz)",
+  //     },
+  //     freqR: {
+  //       value: 528.0,
+  //       min: 200,
+  //       max: 1000,
+  //       step: 1,
+  //       label: "R Frequency (Hz)",
+  //     },
+  //   }
+  // );
 
   // String attachment points (hardcoded)
   const attachmentPoints = React.useMemo(
