@@ -12,7 +12,7 @@ function App() {
       <Canvas camera={{ position: [0, 0, 10], fov: 75 }}>
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
-        <Environment preset="city" />
+        <Environment preset="forest" />
 
         <Physics gravity={[0, -9.8, 0]}>
           {/* Falling Letters */}
@@ -31,7 +31,7 @@ function App() {
           </RigidBody> */}
         </Physics>
 
-        <OrbitControls />
+        {/* <OrbitControls /> */}
       </Canvas>
     </div>
   );
