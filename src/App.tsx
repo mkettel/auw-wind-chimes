@@ -32,7 +32,7 @@ function App() {
         />
         <Environment preset="forest" />
         <CameraController />
-        <SoftShadows size={10} samples={8} focus={0} />
+        <SoftShadows size={8} samples={5} focus={0} />
 
         <Physics gravity={[0, -9.8, 0]}>
           {/* Falling Letters */}
@@ -42,11 +42,11 @@ function App() {
           <RigidBody type="fixed">
             <mesh
               receiveShadow
-              position={[0, 0, -3]}
+              position={[0, 0, -2.5]}
               rotation={[0, 0, Math.PI / 2]}
             >
               <planeGeometry args={[50, 50]} />
-              <meshStandardMaterial color="#e7e7e7" />
+              <meshStandardMaterial color="#ffffff" />
             </mesh>
           </RigidBody>
         </Physics>
