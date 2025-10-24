@@ -492,8 +492,8 @@ export function FallingLetters() {
 
   // Hardcoded values (to enable GUI, comment these out and uncomment useControls blocks below)
   const letterColor = "#000000";
-  const metalness = 0.0;
-  const roughness = 0.9;
+  const metalness = 0.9;
+  const roughness = 0.0;
   const windStrength = 0.001;
   const windSpeed = 0.3;
   const damping = 0.2;
