@@ -9,7 +9,7 @@ import "./App.css";
 function App() {
   return (
     <div className="App" style={{ width: "100vw", height: "100vh" }}>
-      <Canvas camera={{ position: [0, 0, 10], fov: 75 }}>
+      <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <Environment preset="forest" />
