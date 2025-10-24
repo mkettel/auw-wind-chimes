@@ -440,18 +440,27 @@ function HangingLetter({
 
 function MouseSphere() {
   const sphereRef = useRef<RapierRigidBody>(null);
-  const { viewport } = useThree();
+  const { camera, viewport } = useThree();
   const currentPos = useRef(new THREE.Vector3(0, 0, 0));
   const targetPos = useRef(new THREE.Vector3(0, 0, 0));
 
   useFrame((state) => {
     if (sphereRef.current) {
-      // Convert mouse position to 3D space
-      const x = (state.pointer.x * viewport.width) / 2;
-      const y = (state.pointer.y * viewport.height) / 2;
+      // Convert normalized mouse position (-1 to 1) to world space at z=0
+      const vector = new THREE.Vector3(state.pointer.x, state.pointer.y, 0.5);
+      vector.unproject(camera);
+
+      // Calculate direction from camera to mouse position
+      const dir = vector.sub(camera.position).normalize();
+
+      // Calculate distance to z=0 plane
+      const distance = -camera.position.z / dir.z;
+
+      // Calculate final position on z=0 plane
+      const pos = camera.position.clone().add(dir.multiplyScalar(distance));
 
       // Update target position
-      targetPos.current.set(x, y, 0);
+      targetPos.current.set(pos.x, pos.y, 0);
 
       // Smoothly interpolate current position to target (lerp for fluid motion)
       currentPos.current.lerp(targetPos.current, 0.1);
@@ -469,7 +478,7 @@ function MouseSphere() {
       name="mouseSphere"
     >
       <mesh>
-        <sphereGeometry args={[1.0, 16, 16]} />
+        <sphereGeometry args={[0.6, 10, 10]} />
         <meshStandardMaterial visible={false} />
       </mesh>
     </RigidBody>
@@ -482,9 +491,9 @@ export function FallingLetters() {
   const stringLength = 15;
 
   // Hardcoded values (to enable GUI, comment these out and uncomment useControls blocks below)
-  const letterColor = "#ffffff";
-  const metalness = 0.9;
-  const roughness = 0.0;
+  const letterColor = "#000000";
+  const metalness = 0.0;
+  const roughness = 0.9;
   const windStrength = 0.001;
   const windSpeed = 0.3;
   const damping = 0.2;
