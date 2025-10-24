@@ -27,6 +27,7 @@ export function RegisterModel(
   const { nodes, materials } = useGLTF(
     "/models/REGISTER.glb"
   ) as unknown as GLTFResult;
+
   return (
     <group {...groupProps} dispose={null}>
       <mesh
@@ -34,7 +35,7 @@ export function RegisterModel(
         receiveShadow
         geometry={nodes.R002.geometry}
         position={[0.5, 0.0, 0.45]}
-        rotation={[0, 0.8, -0.5]}
+        rotation={[2.67, -0.5, -3.1]}
         scale={[132.439, 132.439, 132.439]}
       >
         <meshStandardMaterial

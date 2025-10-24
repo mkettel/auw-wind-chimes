@@ -563,14 +563,14 @@ export function FallingLetters() {
       A: new THREE.Vector3(-0.6, 0.08, 0.3),
       U: new THREE.Vector3(0.2, 0.9, 0.25),
       W: new THREE.Vector3(2.4, 0.9, 0.25),
-      R: new THREE.Vector3(4.1, 1.91, 0.44),
+      R: new THREE.Vector3(4.05, 1.91, 0.44),
     }),
     []
   );
 
   const secondAttachmentPoints = React.useMemo(
     () => ({
-      R: new THREE.Vector3(3.88, 1.48, 0.68),
+      R: new THREE.Vector3(4.05, 1.48, 0.68),
     }),
     []
   );
