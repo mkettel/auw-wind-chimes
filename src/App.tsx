@@ -48,7 +48,7 @@ export function CameraController() {
 
   useEffect(() => {
     // Set camera position
-    camera.position.set(0, -2, 10);
+    camera.position.set(0, -2, 8);
 
     // Set OrbitControls target (where the camera looks at)
     if (controlsRef.current) {
