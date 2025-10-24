@@ -18,11 +18,11 @@ import * as THREE from "three";
 function App() {
   return (
     <div className="App" style={{ width: "100vw", height: "100vh" }}>
-      <Canvas shadows>
+      <Canvas shadows gl={{ toneMapping: THREE.NoToneMapping }}>
         <ambientLight intensity={0.5} />
         <directionalLight
           position={[9, 2, 5]}
-          intensity={2}
+          intensity={2.5}
           castShadow
           shadow-mapSize={[512, 512]}
           shadow-camera-left={-5}
@@ -30,15 +30,15 @@ function App() {
           shadow-camera-top={10}
           shadow-camera-bottom={-10}
         />
-        <Environment preset="forest" />
+        <Environment preset="forest" environmentIntensity={1} />
         <CameraController />
-        <SoftShadows size={8} samples={5} focus={0} />
+        <SoftShadows size={10} samples={10} focus={0} />
 
         <Physics gravity={[0, -9.8, 0]}>
           {/* Falling Letters */}
           <FallingLetters />
 
-          {/* Ground plane */}
+          {/* Wall plane */}
           <RigidBody type="fixed">
             <mesh
               receiveShadow
