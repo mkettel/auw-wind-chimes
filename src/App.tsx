@@ -1,5 +1,5 @@
 import React from "react";
-import { Camera, Canvas } from "@react-three/fiber";
+import { Camera, Canvas, Vector3 } from "@react-three/fiber";
 import { OrbitControls, Center, Environment, Sky } from "@react-three/drei";
 import { Physics, RigidBody } from "@react-three/rapier";
 import { Model } from "./Logo";
@@ -7,6 +7,7 @@ import { FallingLetters } from "./FallingLetters";
 import "./App.css";
 import { useThree } from "@react-three/fiber";
 import { useRef, useEffect } from "react";
+import * as THREE from "three";
 
 function App() {
   return (
@@ -46,13 +47,15 @@ export function CameraController() {
   const controlsRef = useRef<any>(null);
   const camera = useThree((state) => state.camera);
 
+  let target = useRef<Vector3>(new THREE.Vector3(2, -1, 0));
+
   useEffect(() => {
     // Set camera position
-    camera.position.set(0, -2, 8);
+    camera.position.set(1.5, -2, 8);
 
     // Set OrbitControls target (where the camera looks at)
     if (controlsRef.current) {
-      controlsRef.current.target.set(0, -1, 0);
+      target.current = controlsRef.current.target.set(1.5, -1, 0);
       controlsRef.current.update();
     }
   }, [camera]);
@@ -60,7 +63,7 @@ export function CameraController() {
   return (
     <OrbitControls
       ref={controlsRef}
-      target={[0, -1, 0]}
+      target={target.current}
       enableZoom={false}
       enablePan={false}
       enableRotate={false}
