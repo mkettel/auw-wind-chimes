@@ -230,11 +230,17 @@ function HangingLetter({
     if (letterRef.current) {
       const time = state.clock.elapsedTime;
 
+      // Get the mass of the letter
+      const mass = letterRef.current.mass();
+
       // Create a subtle, natural wind pattern using sine waves
-      const windX = Math.sin(time * windSpeed + xPosition) * windStrength;
+      // Scale the force by mass so all letters experience similar acceleration
+      const windX =
+        Math.sin(time * windSpeed + xPosition) * windStrength * mass;
       const windZ =
         Math.sin(time * (windSpeed * 1.5) + xPosition * 0.5) *
-        (windStrength * 0.3);
+        (windStrength * 0.3) *
+        mass;
 
       letterRef.current.applyImpulse({ x: windX, y: 0, z: windZ }, true);
     }
@@ -343,6 +349,7 @@ function HangingLetter({
         onCollisionEnter={handleCollision}
         name={`letter-${letter}`}
         position={letter === "R" ? [xPosition + 1.0, 0, 0] : undefined}
+        mass={letter === "R" ? 11 : 0.5}
       >
         <group
           position={[
