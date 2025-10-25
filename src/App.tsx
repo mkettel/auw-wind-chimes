@@ -42,10 +42,11 @@ function App() {
           intensity={2.5}
           castShadow
           shadow-mapSize={[512, 512]}
-          shadow-camera-left={-5}
+          shadow-camera-left={-9}
           shadow-camera-right={15}
           shadow-camera-top={10}
           shadow-camera-bottom={-10}
+          color="#ffffff"
         />
         <Environment preset="forest" environmentIntensity={1} />
         <CameraController />
