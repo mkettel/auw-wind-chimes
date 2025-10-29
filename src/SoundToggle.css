@@ -1,0 +1,22 @@
+.sound-toggle {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  color: black;
+  font-size: 16px;
+  font-weight: 600; /* semi-bold */
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1000;
+  font-family: inherit;
+}
+
+.sound-toggle.disabled {
+  text-decoration: line-through;
+}
+
+.sound-toggle.enabled {
+  text-decoration: none;
+}

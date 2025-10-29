@@ -19,27 +19,61 @@ const getAudioContext = () => {
   return audioContext;
 };
 
-// Play a wind chime sound with a specific frequency
+// Play a realistic wind chime sound with harmonics
 const playChimeSound = (frequency: number, volume: number = 0.3) => {
   const ctx = getAudioContext();
   const now = ctx.currentTime;
+  const decayTime = 3.5; // Longer, more realistic decay
 
-  // Create oscillator for the chime tone
-  const oscillator = ctx.createOscillator();
-  const gainNode = ctx.createGain();
+  // Create fundamental tone (main frequency)
+  const fundamental = ctx.createOscillator();
+  const fundamentalGain = ctx.createGain();
 
-  oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(frequency, now);
+  fundamental.type = "sine";
+  fundamental.frequency.setValueAtTime(frequency, now);
 
-  // Envelope for natural chime decay
-  gainNode.gain.setValueAtTime(volume, now);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.5); // make last number smaller to make sound more subtle
+  // Add subtle harmonic overtones for metallic quality
+  const harmonic1 = ctx.createOscillator();
+  const harmonic1Gain = ctx.createGain();
+  harmonic1.type = "sine";
+  harmonic1.frequency.setValueAtTime(frequency * 2.76, now); // Metallic overtone
 
-  oscillator.connect(gainNode);
-  gainNode.connect(ctx.destination);
+  const harmonic2 = ctx.createOscillator();
+  const harmonic2Gain = ctx.createGain();
+  harmonic2.type = "sine";
+  harmonic2.frequency.setValueAtTime(frequency * 5.4, now); // Higher overtone
 
-  oscillator.start(now);
-  oscillator.stop(now + 1.5); // make last number smaller to make sound more subtle
+  // Natural exponential decay envelope (like real bells)
+  // Fundamental (loudest)
+  fundamentalGain.gain.setValueAtTime(volume * 0.7, now);
+  fundamentalGain.gain.exponentialRampToValueAtTime(0.001, now + decayTime);
+
+  // First harmonic (quieter, faster decay)
+  harmonic1Gain.gain.setValueAtTime(volume * 0.15, now);
+  harmonic1Gain.gain.exponentialRampToValueAtTime(0.001, now + decayTime * 0.6);
+
+  // Second harmonic (very quiet, fastest decay)
+  harmonic2Gain.gain.setValueAtTime(volume * 0.05, now);
+  harmonic2Gain.gain.exponentialRampToValueAtTime(0.001, now + decayTime * 0.3);
+
+  // Connect everything
+  fundamental.connect(fundamentalGain);
+  harmonic1.connect(harmonic1Gain);
+  harmonic2.connect(harmonic2Gain);
+
+  fundamentalGain.connect(ctx.destination);
+  harmonic1Gain.connect(ctx.destination);
+  harmonic2Gain.connect(ctx.destination);
+
+  // Start all oscillators
+  fundamental.start(now);
+  harmonic1.start(now);
+  harmonic2.start(now);
+
+  // Stop all oscillators
+  fundamental.stop(now + decayTime);
+  harmonic1.stop(now + decayTime * 0.6);
+  harmonic2.stop(now + decayTime * 0.3);
 };
 
 function String({
@@ -447,7 +481,7 @@ function HangingLetter({
 
 function MouseSphere() {
   const sphereRef = useRef<RapierRigidBody>(null);
-  const { camera, viewport } = useThree();
+  const { camera } = useThree();
   const currentPos = useRef(new THREE.Vector3(0, 0, 0));
   const targetPos = useRef(new THREE.Vector3(0, 0, 0));
 
@@ -492,7 +526,11 @@ function MouseSphere() {
   );
 }
 
-export function FallingLetters() {
+interface FallingLettersProps {
+  soundEnabled?: boolean;
+}
+
+export function FallingLetters({ soundEnabled = false }: FallingLettersProps) {
   const letters = ["A", "U", "W", "R"];
   const spacing = 2.5;
   const stringLength = 15;
@@ -506,12 +544,12 @@ export function FallingLetters() {
   const damping = 0.2;
   const stringColor = "#000000";
   const stringOpacity = 0.1;
-  const soundEnabled = false;
   const soundVolume = 0.2;
-  const freqA = 396.25;
-  const freqU = 265.25;
-  const freqW = 200.99;
-  const freqR = 528.0;
+  // Pentatonic scale frequencies for harmonious wind chime sounds
+  const freqA = 523.25; // C5
+  const freqU = 392.0; // G4
+  const freqW = 293.66; // D4
+  const freqR = 261.63; // C4
 
   // Uncomment these blocks to enable Leva GUI controls
   // const { letterColor, metalness, roughness } = useControls("Letters", {

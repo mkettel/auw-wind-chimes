@@ -10,12 +10,20 @@ import {
 import { Physics, RigidBody } from "@react-three/rapier";
 import { Model } from "./Logo";
 import { FallingLetters } from "./FallingLetters";
+import { SoundToggle } from "./SoundToggle";
 import "./App.css";
 import { useThree } from "@react-three/fiber";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 
 function App() {
+  // Sound state - always starts OFF (browsers block audio until user interaction)
+  const [soundEnabled, setSoundEnabled] = useState(false);
+
+  const toggleSound = () => {
+    setSoundEnabled((prev: boolean) => !prev);
+  };
+
   return (
     <div
       className="App"
@@ -35,6 +43,10 @@ function App() {
           zIndex: 10,
         }}
       />
+
+      {/* Sound Toggle Button */}
+      <SoundToggle enabled={soundEnabled} onToggle={toggleSound} />
+
       <Canvas shadows gl={{ toneMapping: THREE.NoToneMapping }}>
         <ambientLight intensity={0.5} />
         <directionalLight
@@ -54,7 +66,7 @@ function App() {
 
         <Physics gravity={[0, -9.8, 0]}>
           {/* Falling Letters */}
-          <FallingLetters />
+          <FallingLetters soundEnabled={soundEnabled} />
 
           {/* Wall plane */}
           <RigidBody type="fixed">
