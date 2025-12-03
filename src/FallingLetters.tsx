@@ -1,12 +1,27 @@
-import React, { useRef, useState, useEffect } from "react";
-import { RigidBody, useRopeJoint, RapierRigidBody } from "@react-three/rapier";
-import { useFrame, useThree } from "@react-three/fiber";
+import React, { useRef, useState, useEffect, createContext, useContext } from "react";
+import { RigidBody, useRopeJoint } from "@react-three/rapier";
+import { useFrame, useThree, ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { useControls } from "leva";
 import { LetterAModel } from "./LetterA";
 import { LetterUModel } from "./LetterU";
 import { LetterWModel } from "./LetterW";
 import { RegisterModel } from "./Register";
+
+// Grab state context for managing letter grabbing
+interface GrabState {
+  grabbedLetter: string | null;
+  setGrabbedLetter: (letter: string | null) => void;
+  mouseWorldPos: React.MutableRefObject<THREE.Vector3>;
+}
+
+const GrabContext = createContext<GrabState | null>(null);
+
+const useGrab = () => {
+  const context = useContext(GrabContext);
+  if (!context) throw new Error('useGrab must be used within GrabProvider');
+  return context;
+};
 
 // Audio context for wind chime sounds
 let audioContext: AudioContext | null = null;
@@ -129,6 +144,51 @@ function String({
   );
 }
 
+// GrabController: Tracks mouse world position
+function GrabController({ children }: { children: React.ReactNode }) {
+  const [grabbedLetter, setGrabbedLetter] = useState<string | null>(null);
+  const mouseWorldPos = useRef(new THREE.Vector3(0, 0, 0));
+  const { camera } = useThree();
+
+  // Track mouse world position
+  useFrame((state) => {
+    // Convert mouse to world space at z=0
+    const vector = new THREE.Vector3(state.pointer.x, state.pointer.y, 0.5);
+    vector.unproject(camera);
+    const dir = vector.sub(camera.position).normalize();
+    const distance = -camera.position.z / dir.z;
+    const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+
+    mouseWorldPos.current.copy(pos);
+  });
+
+  // Handle global pointer up to release grabbed letter
+  useEffect(() => {
+    const handlePointerUp = () => {
+      document.body.style.cursor = 'auto';
+      setGrabbedLetter(null);
+    };
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('mouseup', handlePointerUp);
+    return () => {
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('mouseup', handlePointerUp);
+    };
+  }, []);
+
+  return (
+    <GrabContext.Provider
+      value={{
+        grabbedLetter,
+        setGrabbedLetter,
+        mouseWorldPos,
+      }}
+    >
+      {children}
+    </GrabContext.Provider>
+  );
+}
+
 // Different attachment points for each letter shape. strings are attached to the top of the letter.
 const getLetterAttachment = (letter: string) => {
   switch (letter) {
@@ -187,6 +247,15 @@ function HangingLetter({
   const anchorRef3 = useRef<any>(null); // Third anchor for W
   const letterRef = useRef<any>(null);
   const lastCollisionTime = useRef(0);
+  const wasGrabbedRef = useRef(false);
+  const grabOffsetRef = useRef(new THREE.Vector3()); // Offset from mouse to letter center at grab time
+
+  // Grab state
+  const { grabbedLetter, setGrabbedLetter, mouseWorldPos } = useGrab();
+  const isGrabbed = grabbedLetter === letter;
+
+  // Grab tuning parameter
+  const GRAB_STIFFNESS = 15; // How quickly letter moves toward target
 
   // Different frequencies for each letter (like wind chimes)
   const getChimeFrequency = (letter: string) => {
@@ -207,10 +276,10 @@ function HangingLetter({
   const handleCollision = (event: any) => {
     if (!soundEnabled) return; // Skip if sound is disabled
 
-    // Check if collision is with another letter (not the mouse sphere or anchor)
+    // Check if collision is with another letter (not anchor)
     const otherBody = event.other.rigidBodyObject;
-    if (!otherBody || !otherBody.name || otherBody.name === "mouseSphere") {
-      return; // Don't play sound for mouse collisions
+    if (!otherBody || !otherBody.name) {
+      return;
     }
 
     const now = Date.now();
@@ -219,6 +288,36 @@ function HangingLetter({
       const frequency = getChimeFrequency(letter);
       playChimeSound(frequency, soundVolume);
       lastCollisionTime.current = now;
+    }
+  };
+
+  // Pointer event handlers for grab interaction
+  const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation();
+
+    // Store offset between mouse and letter position at grab time
+    if (letterRef.current) {
+      const letterPos = letterRef.current.translation();
+      grabOffsetRef.current.set(
+        letterPos.x - mouseWorldPos.current.x,
+        letterPos.y - mouseWorldPos.current.y,
+        0
+      );
+    }
+
+    document.body.style.cursor = 'grabbing';
+    setGrabbedLetter(letter);
+  };
+
+  const handlePointerEnter = () => {
+    if (!grabbedLetter) {
+      document.body.style.cursor = 'grab';
+    }
+  };
+
+  const handlePointerLeave = () => {
+    if (!grabbedLetter) {
+      document.body.style.cursor = 'auto';
     }
   };
 
@@ -259,16 +358,41 @@ function HangingLetter({
     stringLength,
   ]);
 
-  // Apply gentle wind force
+  // Apply gentle wind force and handle grab/drag
   useFrame((state) => {
-    if (letterRef.current) {
-      const time = state.clock.elapsedTime;
+    if (!letterRef.current) return;
 
-      // Get the mass of the letter
-      const mass = letterRef.current.mass();
+    const time = state.clock.elapsedTime;
+    const mass = letterRef.current.mass();
 
-      // Create a subtle, natural wind pattern using sine waves
-      // Scale the force by mass so all letters experience similar acceleration
+    // Handle grab behavior
+    if (isGrabbed) {
+      const letterPos = letterRef.current.translation();
+
+      // Target position = mouse position + the offset we stored at grab time
+      const targetX = mouseWorldPos.current.x + grabOffsetRef.current.x;
+      const targetY = mouseWorldPos.current.y + grabOffsetRef.current.y;
+
+      // Calculate difference to target
+      const dx = targetX - letterPos.x;
+      const dy = targetY - letterPos.y;
+
+      // Set velocity directly toward target
+      letterRef.current.setLinvel(
+        {
+          x: dx * GRAB_STIFFNESS,
+          y: dy * GRAB_STIFFNESS,
+          z: 0,
+        },
+        true
+      );
+
+      wasGrabbedRef.current = true;
+    } else if (wasGrabbedRef.current) {
+      // Just released - let physics take over naturally
+      wasGrabbedRef.current = false;
+    } else {
+      // Normal wind behavior when not grabbed
       const windX =
         Math.sin(time * windSpeed + xPosition) * windStrength * mass;
       const windZ =
@@ -391,6 +515,9 @@ function HangingLetter({
             letter === "R" ? 2.0 + letterOffset.y : -1.1 + letterOffset.y,
             letterOffset.z,
           ]}
+          onPointerDown={handlePointerDown}
+          onPointerEnter={handlePointerEnter}
+          onPointerLeave={handlePointerLeave}
         >
           {letter === "A" && (
             <LetterAModel
@@ -476,53 +603,6 @@ function HangingLetter({
         />
       )}
     </>
-  );
-}
-
-function MouseSphere() {
-  const sphereRef = useRef<RapierRigidBody>(null);
-  const { camera } = useThree();
-  const currentPos = useRef(new THREE.Vector3(0, 0, 0));
-  const targetPos = useRef(new THREE.Vector3(0, 0, 0));
-
-  useFrame((state) => {
-    if (sphereRef.current) {
-      // Convert normalized mouse position (-1 to 1) to world space at z=0
-      const vector = new THREE.Vector3(state.pointer.x, state.pointer.y, 0.5);
-      vector.unproject(camera);
-
-      // Calculate direction from camera to mouse position
-      const dir = vector.sub(camera.position).normalize();
-
-      // Calculate distance to z=0 plane
-      const distance = -camera.position.z / dir.z;
-
-      // Calculate final position on z=0 plane
-      const pos = camera.position.clone().add(dir.multiplyScalar(distance));
-
-      // Update target position
-      targetPos.current.set(pos.x, pos.y, 0);
-
-      // Smoothly interpolate current position to target (lerp for fluid motion)
-      currentPos.current.lerp(targetPos.current, 0.1);
-
-      sphereRef.current.setTranslation(currentPos.current, true);
-    }
-  });
-
-  return (
-    <RigidBody
-      ref={sphereRef}
-      type="kinematicPosition"
-      colliders="ball"
-      sensor={false}
-      name="mouseSphere"
-    >
-      <mesh>
-        <sphereGeometry args={[0.6, 10, 10]} />
-        <meshStandardMaterial visible={false} />
-      </mesh>
-    </RigidBody>
   );
 }
 
@@ -663,33 +743,34 @@ export function FallingLetters({ soundEnabled = false }: FallingLettersProps) {
   };
 
   return (
-    <group>
-      {letters.map((letter, index) => {
-        const xPosition = index * spacing - spacing;
-        return (
-          <HangingLetter
-            key={letter}
-            letter={letter}
-            xPosition={xPosition}
-            stringLength={stringLength}
-            color={letterColor}
-            metalness={metalness}
-            roughness={roughness}
-            windStrength={windStrength}
-            windSpeed={windSpeed}
-            damping={damping}
-            stringColor={stringColor}
-            stringOpacity={stringOpacity}
-            soundEnabled={soundEnabled}
-            soundVolume={soundVolume}
-            frequencies={{ A: freqA, U: freqU, W: freqW, R: freqR }}
-            attachmentPoint={getAttachmentPoint(letter)}
-            secondAttachmentPoint={getSecondAttachmentPoint(letter)}
-            letterOffset={getLetterOffset(letter)}
-          />
-        );
-      })}
-      <MouseSphere />
-    </group>
+    <GrabController>
+      <group>
+        {letters.map((letter, index) => {
+          const xPosition = index * spacing - spacing;
+          return (
+            <HangingLetter
+              key={letter}
+              letter={letter}
+              xPosition={xPosition}
+              stringLength={stringLength}
+              color={letterColor}
+              metalness={metalness}
+              roughness={roughness}
+              windStrength={windStrength}
+              windSpeed={windSpeed}
+              damping={damping}
+              stringColor={stringColor}
+              stringOpacity={stringOpacity}
+              soundEnabled={soundEnabled}
+              soundVolume={soundVolume}
+              frequencies={{ A: freqA, U: freqU, W: freqW, R: freqR }}
+              attachmentPoint={getAttachmentPoint(letter)}
+              secondAttachmentPoint={getSecondAttachmentPoint(letter)}
+              letterOffset={getLetterOffset(letter)}
+            />
+          );
+        })}
+      </group>
+    </GrabController>
   );
 }
